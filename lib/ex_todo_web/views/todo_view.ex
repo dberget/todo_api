@@ -11,7 +11,7 @@ defmodule ExTodoWeb.TodoView do
   end
 
   def render("todo.json", %{todo: todo}) do
-    %{id: todo.id}
+    %{data: todo}
   end
 
   def render("token.json", %{token: token}) do

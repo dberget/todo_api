@@ -7,7 +7,7 @@ defmodule ExTodo.Todos do
     TodoServer.all(user_pid)
   end
 
-  def get_todo!(user_pid, id), do: TodoServer.get(user_pid, id)
+  def get_todo(todo_id, user_pid), do: TodoServer.get(user_pid, todo_id)
 
   def create_todo(attrs, user_pid) do
    %Todo{}
