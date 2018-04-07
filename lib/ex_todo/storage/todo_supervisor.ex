@@ -8,7 +8,7 @@ defmodule ExTodo.Storage.Supervisor do
     Supervisor.start_link(__MODULE__, [], name: :todo_supervisor)
   end
 
-  def start_list(name) do
+  def new_todo_list(name) do
     # And we use `start_child/2` to start a new Chat.Server process
     Supervisor.start_child(:todo_supervisor, [name])
   end

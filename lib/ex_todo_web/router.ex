@@ -12,7 +12,12 @@ defmodule ExTodoWeb.Router do
   pipeline :api do
     plug :accepts, ["json"]
 
-    resources "/todos", TodoController, except: [:new, :edit]
+  end
+
+  scope "/", ExTodoWeb do
+    pipe_through :api # Use the default browser stack
+
+    get "/todos", TodoController, :index
   end
 
   scope "/", ExTodoWeb do

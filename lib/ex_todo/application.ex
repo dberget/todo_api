@@ -1,5 +1,6 @@
 defmodule ExTodo.Application do
   use Application
+  alias ExTodo.Storage
 
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
@@ -10,6 +11,8 @@ defmodule ExTodo.Application do
     children = [
       # Start the endpoint when the application starts
       supervisor(ExTodoWeb.Endpoint, []),
+      worker(Storage.Registry, []),
+      worker(Storage.Supervisor, [])
 
       # Start your own worker by calling: ExTodo.Worker.start_link(arg1, arg2, arg3)
       # worker(ExTodo.Worker, [arg1, arg2, arg3]),
