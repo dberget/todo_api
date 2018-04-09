@@ -8,6 +8,10 @@ defmodule ExTodo.Todos do
 
   def get_todo(todo_id, user_pid), do: TodoServer.get(todo_id, user_pid)
 
+  def create_todo(%{id: id} = attrs, _user_pid) when is_nil(id) do
+    {:error, "id can't be nil in #{attrs}"}
+  end
+
   def create_todo(attrs, user_pid) do
     Todo
     |> to_struct(attrs)

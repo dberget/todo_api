@@ -1,5 +1,5 @@
 defmodule TodoServerTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   alias ExTodo.Storage.TodoServer
   alias ExTodo.Todos.Todo
 
@@ -8,7 +8,6 @@ defmodule TodoServerTest do
 
   setup do
     ExTodo.Storage.Supervisor.new_todo_list(@server_name)
-
     %{server: @server_name}
   end
 
@@ -21,16 +20,22 @@ defmodule TodoServerTest do
   test "delete_todo/2 delete todo successfully", %{server: server} do
     todo = todo_fixture(%{title: "delete", id: 1})
     TodoServer.delete_todo(todo, server)
-    todos = TodoServer.all(server)
+    {:ok, todos} = TodoServer.all(server)
 
-    todo_in_todos? = Enum.member?(todos, todo)
-
-    assert todo_in_todos? == false
+    refute Enum.member?(todos, todo)
   end
 
   test "mark_complete/2 changes todo successfully", %{server: server} do
     todo_fixture(%{title: "mark_complete", id: 4, complete: false})
     TodoServer.mark_complete(4, server)
+    {:ok, todo} = TodoServer.get(4, server)
+
+    assert todo.complete
+  end
+
+  test "mark_complete/2 when is map updates todo successfully", %{server: server} do
+    todo = todo_fixture(%{title: "mark_complete", id: 4, complete: false})
+    TodoServer.mark_complete(todo, server)
 
     {:ok, todo} = TodoServer.get(4, server)
 
@@ -42,9 +47,13 @@ defmodule TodoServerTest do
     {:ok, todo} = TodoServer.get(6, server)
 
     assert todo.title == "get_todo"
-  end 
+  end
+
   test "all/1 returns list of all cards", %{server: server} do
-    todos = TodoServer.all(server)
+    todo_fixture(%{title: "get_todo", id: 7})
+    {:ok, todos} = TodoServer.all(server)
+
+    assert [hd | tl] = [todos] 
   end
 
   def todo_fixture(attrs \\ %{}) do

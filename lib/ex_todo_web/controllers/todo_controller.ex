@@ -6,15 +6,21 @@ defmodule ExTodoWeb.TodoController do
   action_fallback(ExTodoWeb.FallbackController)
 
   def index(conn, _params) do
-    rand_id = Enum.random(1..1000)
-    token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", rand_id)
-    ExTodo.Storage.Supervisor.new_todo_list(rand_id)
+    case authorize_connection(conn) do
+      {:ok, user_id} ->
+        {:ok, todos} = Todos.list_todos(user_id)
+        render(conn, "list.json", todos: todos)
 
-    conn =
-      conn
-      |> put_resp_header("authorization", token)
+      {:error, :missing} ->
+        {:ok, token} = create_new_token()
 
-    render(conn, "new.json")
+        conn
+        |> put_resp_header("authorization", token)
+        |> render("new.json")
+
+      _ ->
+        render(conn, "error.json")
+    end
   end
 
   def show(conn, %{"id" => todo_id}) do
@@ -51,6 +57,14 @@ defmodule ExTodoWeb.TodoController do
     token = get_authorization_header(conn)
 
     Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400)
+  end
+
+  defp create_new_token() do
+    rand_id = Enum.random(1..1000)
+    ExTodo.Storage.Supervisor.new_todo_list(rand_id)
+    token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", rand_id)
+
+    {:ok, token}
   end
 
   defp get_authorization_header(conn) do
