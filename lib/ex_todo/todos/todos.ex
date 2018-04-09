@@ -9,8 +9,8 @@ defmodule ExTodo.Todos do
   def get_todo(todo_id, user_pid), do: TodoServer.get(todo_id, user_pid)
 
   def create_todo(attrs, user_pid) do
-    %Todo{}
-    |> Map.merge(attrs)
+    Todo
+    |> to_struct(attrs)
     |> TodoServer.add_todo(user_pid)
   end
 
@@ -18,5 +18,16 @@ defmodule ExTodo.Todos do
 
   def delete_todo(%Todo{} = todo, user_pid) do
     TodoServer.delete_todo(user_pid, todo)
+  end
+
+  defp to_struct(kind, attrs) do
+    struct = struct(kind)
+
+    Enum.reduce(Map.to_list(struct), struct, fn {k, _}, acc ->
+      case Map.fetch(attrs, Atom.to_string(k)) do
+        {:ok, v} -> %{acc | k => v}
+        :error -> acc
+      end
+    end)
   end
 end

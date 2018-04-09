@@ -6,49 +6,51 @@ defmodule ExTodoWeb.TodoController do
   action_fallback(ExTodoWeb.FallbackController)
 
   def index(conn, _params) do
-    token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", Enum.random(1..1000))
-    ExTodo.Storage.Supervisor.new_todo_list(token)
+    rand_id = Enum.random(1..1000)
+    token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", rand_id)
+    ExTodo.Storage.Supervisor.new_todo_list(rand_id)
 
     conn =
       conn
       |> put_resp_header("authorization", token)
 
-    render(conn, "index.json", %{token: token})
+    render(conn, "new.json")
   end
 
   def show(conn, %{"id" => todo_id}) do
-  token = get_authorization_header(conn)
+    with {:ok, user_id} <- authorize_connection(conn),
+         {:ok, todo} <- Todos.get_todo(todo_id, user_id) do
+      render(conn, "show.json", todo: todo)
+    else
+      _ ->
+        render(conn, "error.json")
+    end
+  end
 
-    case Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400) do
-      {:ok, user_id} ->
-        todo = Todos.get_todo(user_id, todo_id)
-        render(conn, "show.json", todo: todo)
+  def create(conn, %{"todo" => todo_params}) do
+    with {:ok, user_id} <- authorize_connection(conn),
+         {:ok, todo} <- Todos.create_todo(todo_params, user_id) do
+      render(conn, "show.json", todo: todo)
+    else
+      _ ->
+        render(conn, "error.json")
+    end
+  end
 
+  def delete(conn, %{"todo" => todo_params}) do
+    with {:ok, user_id} <- authorize_connection(conn),
+         todos <- Todos.delete_todo(user_id, todo_params) do
+      render(conn, "todos.json", todos: todos)
+    else
       {:error, _} ->
         render(conn, "error.json")
     end
   end
 
-  def create(conn, %{"todo" => todo_params, "token" => token}) do
-    case Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400) do
-      {:ok, user_id} ->
-        todos = Todos.create_todo(user_id, todo_params)
-        render(conn, "show.json", todos: todos)
+  defp authorize_connection(conn) do
+    token = get_authorization_header(conn)
 
-      {:error, _} ->
-        render(conn, "error.json")
-    end
-  end
-
-  def delete(conn, %{"todo" => todo_params, "token" => token}) do
-    case Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400) do
-      {:ok, user_id} ->
-        todos = Todos.delete_todo(user_id, todo_params)
-        render(conn, "show.json", todos: todos)
-
-      {:error, _} ->
-        render(conn, "error.json")
-    end
+    Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400)
   end
 
   defp get_authorization_header(conn) do
@@ -56,19 +58,4 @@ defmodule ExTodoWeb.TodoController do
     |> get_req_header("authorization")
     |> List.first()
   end
-
-  #   def update(conn, %{"id" => id, "todo" => todo_params}) do
-  #     todo = Todos.get_todo!(id)
-
-  #     with {:ok, %Todo{} = todo} <- Todos.update_todo(todo, todo_params) do
-  #       render(conn, "show.json", todo: todo)
-  #     end
-  #   end
-
-  #   def delete(conn, %{"id" => id}) do
-  #     todo = Todos.get_todo!(id)
-  #     with {:ok, %Todo{}} <- Todos.delete_todo(todo) do
-  #       send_resp(conn, :no_content, "")
-  #     end
-  #   end
 end

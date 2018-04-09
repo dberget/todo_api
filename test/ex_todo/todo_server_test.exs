@@ -32,18 +32,17 @@ defmodule TodoServerTest do
     todo_fixture(%{title: "mark_complete", id: 4, complete: false})
     TodoServer.mark_complete(4, server)
 
-    todo = TodoServer.get(4, server)
+    {:ok, todo} = TodoServer.get(4, server)
 
     assert todo.complete
   end
 
   test "get/2 gets todo successfully with id", %{server: server} do
     todo_fixture(%{title: "get_todo", id: 6})
-    todo = TodoServer.get(6, server)
+    {:ok, todo} = TodoServer.get(6, server)
 
     assert todo.title == "get_todo"
-  end
-
+  end 
   test "all/1 returns list of all cards", %{server: server} do
     todos = TodoServer.all(server)
   end

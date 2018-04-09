@@ -2,8 +2,8 @@ defmodule ExTodoWeb.TodoView do
   use ExTodoWeb, :view
   alias ExTodoWeb.TodoView
 
-  def render("new.json", %{token: token}) do
-    %{token: token}
+  def render("new.json", _assigns) do
+    %{authorization: "Approved"}
   end
 
   def render("list.json", %{todos: todos}) do
@@ -11,7 +11,7 @@ defmodule ExTodoWeb.TodoView do
   end
 
   def render("show.json", %{todo: todo}) do
-    %{data: render_one(todo, TodoView, "todo.json")}
+    render_one(todo, TodoView, "todo.json")
   end
 
   def render("todos.json", %{todos: todos}) do
@@ -19,7 +19,7 @@ defmodule ExTodoWeb.TodoView do
   end
 
   def render("todo.json", %{todo: todo}) do
-    %{todo: todo}
+    todo
   end
 
   def render("token.json", %{token: token}) do

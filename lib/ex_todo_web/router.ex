@@ -17,8 +17,7 @@ defmodule ExTodoWeb.Router do
   scope "/", ExTodoWeb do
     pipe_through :api 
 
-    get "/todos", TodoController, :index
-    get "/todos/:id", TodoController, :show
+    resources "/todos", TodoController
   end
 
   scope "/", ExTodoWeb do

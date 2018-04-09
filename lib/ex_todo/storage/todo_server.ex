@@ -50,7 +50,7 @@ defmodule ExTodo.Storage.TodoServer do
   def handle_call({:get_todo, todo_id}, _from, state) do
     todo = Enum.filter(state, &(&1.id == todo_id)) |> List.first()
 
-    {:reply, todo, state}
+    {:reply, {:ok, todo}, state}
   end
 
   def handle_call({:mark_complete, todo}, _from, state) when is_map(todo) do
