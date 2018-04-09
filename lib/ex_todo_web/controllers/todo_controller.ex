@@ -9,19 +9,24 @@ defmodule ExTodoWeb.TodoController do
     token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", Enum.random(1..1000))
     ExTodo.Storage.Supervisor.new_todo_list(token)
 
+    conn =
+      conn
+      |> put_resp_header("authorization", token)
+
     render(conn, "index.json", %{token: token})
   end
 
-  def show(conn, %{"id" => todo_id, "token" => token}) do
+  def show(conn, %{"id" => todo_id}) do
+  token = get_authorization_header(conn)
+
     case Phoenix.Token.verify(ExTodoWeb.Endpoint, "user salt", token, max_age: 86400) do
-        {:ok, user_id} ->
-          todo = Todos.get_todo(user_id, todo_id)
-          render(conn, "show.json", todo: todo)
-  
-        {:error, _} ->
-          render(conn, "error.json")
-      end
-    render(conn, "show.json", todo: todo)
+      {:ok, user_id} ->
+        todo = Todos.get_todo(user_id, todo_id)
+        render(conn, "show.json", todo: todo)
+
+      {:error, _} ->
+        render(conn, "error.json")
+    end
   end
 
   def create(conn, %{"todo" => todo_params, "token" => token}) do
@@ -46,6 +51,11 @@ defmodule ExTodoWeb.TodoController do
     end
   end
 
+  defp get_authorization_header(conn) do
+    conn
+    |> get_req_header("authorization")
+    |> List.first()
+  end
 
   #   def update(conn, %{"id" => id, "todo" => todo_params}) do
   #     todo = Todos.get_todo!(id)

@@ -4,7 +4,7 @@ defmodule ExTodo.Storage.Supervisor do
 
   def start_link do
     # We are now registering our supervisor process with a name
-    # so we can reference it in the `start_room/1` function
+    # so we can reference it in the `new_todo_list/1` function
     Supervisor.start_link(__MODULE__, [], name: :todo_supervisor)
   end
 

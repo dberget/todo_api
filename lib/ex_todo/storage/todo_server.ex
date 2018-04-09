@@ -15,23 +15,19 @@ defmodule ExTodo.Storage.TodoServer do
     GenServer.call(via_tuple(list_name), {:get_state})
   end
 
-  def get(list_name, todo_id) do
+  def add_todo(todo, list_name) do
+    GenServer.call(via_tuple(list_name), {:add_todo, todo})
+  end
+
+  def get(todo_id, list_name) do
     GenServer.call(via_tuple(list_name), {:get_todo, todo_id})
   end
 
-  def mark_complete(list_name, todo) when is_map(todo) do
+  def mark_complete(todo, list_name) do
     GenServer.call(via_tuple(list_name), {:mark_complete, todo})
   end
 
-  def mark_complete(list_name, todo) when is_integer(todo) do
-    GenServer.call(via_tuple(list_name), {:mark_complete_id, todo})
-  end
-
-  def add_todo(todo, list_name) do
-    GenServer.call(via_tuple(list_name), {:push, todo})
-  end
-
-  def delete_todo(list_name, todo) do
+  def delete_todo(todo, list_name) do
     GenServer.call(via_tuple(list_name), {:delete_todo, todo})
   end
 
@@ -45,25 +41,25 @@ defmodule ExTodo.Storage.TodoServer do
     {:ok, state}
   end
 
-  # returns :ok, async
-  def handle_call({:push, todo}, _from, state) do
+  def handle_call({:add_todo, todo}, _from, state) do
     new_state = [todo | state]
-    {:reply, new_state, new_state}
+
+    {:reply, {:ok, todo}, new_state}
   end
 
   def handle_call({:get_todo, todo_id}, _from, state) do
-    todo = Enum.filter(state, &(&1.id == todo_id))
+    todo = Enum.filter(state, &(&1.id == todo_id)) |> List.first()
 
     {:reply, todo, state}
   end
 
-  def handle_call({:mark_complete, todo}, _from, state) do
+  def handle_call({:mark_complete, todo}, _from, state) when is_map(todo) do
     new_state = Enum.map(state, &if(&1.id == todo.id, do: %{&1 | complete: true}, else: &1))
 
     {:reply, new_state, new_state}
   end
 
-  def handle_call({:mark_complete_id, todo}, _from, state) do
+  def handle_call({:mark_complete, todo}, _from, state) when is_integer(todo) do
     new_state = Enum.map(state, &if(&1.id == todo, do: %{&1 | complete: true}, else: &1))
 
     {:reply, new_state, new_state}

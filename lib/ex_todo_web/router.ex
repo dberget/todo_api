@@ -15,9 +15,10 @@ defmodule ExTodoWeb.Router do
   end
 
   scope "/", ExTodoWeb do
-    pipe_through :api # Use the default browser stack
+    pipe_through :api 
 
     get "/todos", TodoController, :index
+    get "/todos/:id", TodoController, :show
   end
 
   scope "/", ExTodoWeb do

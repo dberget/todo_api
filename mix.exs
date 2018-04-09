@@ -19,7 +19,8 @@ defmodule ExTodo.Mixfile do
   def application do
     [
       mod: {ExTodo.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools],
+      registered: [ExTodo.Storage.TodoServer]
     ]
   end
 
