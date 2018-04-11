@@ -11,7 +11,7 @@ defmodule ExTodo.Application do
     children = [
       # Start the endpoint when the application starts
       supervisor(ExTodoWeb.Endpoint, []),
-      worker(Storage.Registry, []),
+      worker(Registry, [:unique, :todo_list]),
       worker(Storage.Supervisor, [])
 
       # Start your own worker by calling: ExTodo.Worker.start_link(arg1, arg2, arg3)

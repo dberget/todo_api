@@ -32,7 +32,7 @@ defmodule ExTodo.Storage.TodoServer do
   end
 
   defp via_tuple(user_server) do
-    {:via, ExTodo.Storage.Registry, {:todo_list, user_server}}
+    {:via, Registry, {:todo_list, user_server}}
   end
 
   ## Server Callbacks

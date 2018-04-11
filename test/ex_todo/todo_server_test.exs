@@ -8,6 +8,7 @@ defmodule TodoServerTest do
 
   setup do
     ExTodo.Storage.Supervisor.new_todo_list(@server_name)
+
     %{user_server: @server_name}
   end
 
