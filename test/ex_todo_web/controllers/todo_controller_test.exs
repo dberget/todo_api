@@ -1,23 +1,22 @@
 defmodule ExTodoWeb.TodoControllerTest do
-  use ExTodoWeb.ConnCase
+  use ExTodoWeb.ConnCase, async: true
 
   alias ExTodo.Todos
-  alias ExTodo.Todos.Todo
 
   @create_attrs %{title: "Todo", id: 1, complete: false, description: nil}
 
   setup_all :create_token
 
-  setup %{conn: conn, token: token, pid: pid} do
+  setup %{conn: conn, token: token, user_server: user_server} do
     conn =
       conn
       |> put_req_header("authorization", token)
 
-    {:ok, conn: conn, pid: pid}
+    {:ok, conn: conn, user_server: user_server}
   end
 
-  def todo_fixture(attrs \\ %{}) do
-    {:ok, todo} = Map.merge(@create_attrs, attrs) |> Todos.create_todo()
+  def todo_fixture(attrs \\ %{}, user_server) do
+    {:ok, todo} = Map.merge(@create_attrs, attrs) |> Todos.create(user_server)
 
     todo
   end
@@ -27,12 +26,12 @@ defmodule ExTodoWeb.TodoControllerTest do
       conn = build_conn()
       auth_header = get(conn, todo_path(conn, :index)) |> get_resp_header("authorization")
 
-      assert [token] = auth_header
+      assert [_token] = auth_header
     end
 
-    test "index displays list of todos if token exists", %{conn: conn, pid: pid} do
+    test "index displays list of todos if token exists", %{conn: conn, user_server: user_server} do
       conn = get(conn, todo_path(conn, :index))
-      {:ok, todos} = Todos.list_todos(pid)
+      {:ok, todos} = Todos.list(user_server)
 
       # list_todo returns Todo struct but json_resp is a map, so checking length for now.
       assert length(todos) == length(json_response(conn, 200))
@@ -41,8 +40,9 @@ defmodule ExTodoWeb.TodoControllerTest do
 
   describe "create todo" do
     test "renders todo when data is valid", %{conn: conn} do
-      conn_1 = post(conn, todo_path(conn, :create), todo: @create_attrs)
-      assert %{"id" => id} = json_response(conn_1, 200)
+      conn = post(conn, todo_path(conn, :create), todo: @create_attrs)
+
+      assert %{"id" => id} = json_response(conn, 200)
     end
   end
 
@@ -62,16 +62,18 @@ defmodule ExTodoWeb.TodoControllerTest do
   #   end
   # end
 
-  # describe "delete todo" do
-  #   test "deletes chosen todo", %{conn: conn, todo: todo} do
-  #     conn = delete(conn, todo_path(conn, :delete, todo))
-  #     assert response(conn, 204)
+  describe "delete todo" do
+    test "deletes chosen todo", %{conn: conn, user_server: user_server} do
+      todo = todo_fixture(%{title: "delete_me", id: 10}, user_server)
 
-  #     assert_error_sent(404, fn ->
-  #       get(conn, todo_path(conn, :show, todo))
-  #     end)
-  #   end
-  # end
+      conn = delete(conn, todo_path(conn, :delete, todo))
+      assert response(conn, 204)
+
+      assert_error_sent(404, fn ->
+        get(conn, todo_path(conn, :show, todo))
+      end)
+    end
+  end
 
   defp authorize_connection(conn) do
     token = get_authorization_header(conn)
@@ -90,6 +92,6 @@ defmodule ExTodoWeb.TodoControllerTest do
     token = Phoenix.Token.sign(ExTodoWeb.Endpoint, "user salt", rand_id)
     ExTodo.Storage.Supervisor.new_todo_list(rand_id)
 
-    %{token: token, pid: rand_id}
+    %{token: token, user_server: rand_id}
   end
 end

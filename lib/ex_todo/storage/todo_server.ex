@@ -7,32 +7,32 @@ defmodule ExTodo.Storage.TodoServer do
   start the Database GenServer
   """
 
-  def start_link(list_name) do
-    GenServer.start_link(__MODULE__, [], name: via_tuple(list_name))
+  def start_link(user_server) do
+    GenServer.start_link(__MODULE__, [], name: via_tuple(user_server))
   end
 
-  def all(list_name) do
-    GenServer.call(via_tuple(list_name), {:get_state})
+  def all(user_server) do
+    GenServer.call(via_tuple(user_server), {:get_state})
   end
 
-  def add_todo(todo, list_name) do
-    GenServer.call(via_tuple(list_name), {:add_todo, todo})
+  def add_todo(todo, user_server) do
+    GenServer.call(via_tuple(user_server), {:add_todo, todo})
   end
 
-  def get(todo_id, list_name) do
-    GenServer.call(via_tuple(list_name), {:get_todo, todo_id})
+  def get(todo_id, user_server) do
+    GenServer.call(via_tuple(user_server), {:get_todo, todo_id})
   end
 
-  def mark_complete(todo, list_name) do
-    GenServer.call(via_tuple(list_name), {:mark_complete, todo})
+  def mark_complete(todo, user_server) do
+    GenServer.call(via_tuple(user_server), {:mark_complete, todo})
   end
 
-  def delete_todo(todo, list_name) do
-    GenServer.call(via_tuple(list_name), {:delete_todo, todo})
+  def delete_todo(todo, user_server) do
+    GenServer.call(via_tuple(user_server), {:delete_todo, todo})
   end
 
-  defp via_tuple(list_name) do
-    {:via, ExTodo.Storage.Registry, {:todo_list, list_name}}
+  defp via_tuple(user_server) do
+    {:via, ExTodo.Storage.Registry, {:todo_list, user_server}}
   end
 
   ## Server Callbacks

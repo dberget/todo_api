@@ -7,8 +7,8 @@ defmodule ExTodoWeb.TodoController do
 
   def index(conn, _params) do
     case authorize_connection(conn) do
-      {:ok, user_id} ->
-        {:ok, todos} = Todos.list_todos(user_id)
+      {:ok, user_server} ->
+        {:ok, todos} = Todos.list(user_server)
         render(conn, "list.json", todos: todos)
 
       {:error, :missing} ->
@@ -24,8 +24,8 @@ defmodule ExTodoWeb.TodoController do
   end
 
   def show(conn, %{"id" => todo_id}) do
-    with {:ok, user_id} <- authorize_connection(conn),
-         {:ok, todo} <- Todos.get_todo(todo_id, user_id) do
+    with {:ok, user_server} <- authorize_connection(conn),
+         {:ok, todo} <- Todos.get(todo_id, user_server) do
       render(conn, "show.json", todo: todo)
     else
       _ ->
@@ -34,8 +34,8 @@ defmodule ExTodoWeb.TodoController do
   end
 
   def create(conn, %{"todo" => todo_params}) do
-    with {:ok, user_id} <- authorize_connection(conn),
-         {:ok, todo} <- Todos.create_todo(todo_params, user_id) do
+    with {:ok, user_server} <- authorize_connection(conn),
+         {:ok, todo} <- Todos.create(todo_params, user_server) do
       render(conn, "show.json", todo: todo)
     else
       _ ->
@@ -44,8 +44,8 @@ defmodule ExTodoWeb.TodoController do
   end
 
   def delete(conn, %{"todo" => todo_params}) do
-    with {:ok, user_id} <- authorize_connection(conn),
-         todos <- Todos.delete_todo(user_id, todo_params) do
+    with {:ok, user_server} <- authorize_connection(conn),
+         todos <- Todos.delete(todo_params, user_server) do
       render(conn, "todos.json", todos: todos)
     else
       {:error, _} ->

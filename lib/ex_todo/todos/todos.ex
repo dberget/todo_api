@@ -2,26 +2,28 @@ defmodule ExTodo.Todos do
   alias ExTodo.Storage.TodoServer
   alias ExTodo.Todos.Todo
 
-  def list_todos(user_pid) do
-    TodoServer.all(user_pid)
+  def list(user_server) do
+    TodoServer.all(user_server)
   end
 
-  def get_todo(todo_id, user_pid), do: TodoServer.get(todo_id, user_pid)
+  def get(todo_id, user_server), do: TodoServer.get(todo_id, user_server)
 
-  def create_todo(%{id: id} = attrs, _user_pid) when is_nil(id) do
+  def create(%{id: id} = attrs, _user_server) when is_nil(id) do
     {:error, "id can't be nil in #{attrs}"}
   end
 
-  def create_todo(attrs, user_pid) do
+  def create(attrs, user_server) do
     Todo
     |> to_struct(attrs)
-    |> TodoServer.add_todo(user_pid)
+    |> TodoServer.add_todo(user_server)
   end
 
-  def todo_complete(todo, user_pid), do: TodoServer.mark_complete(todo, user_pid)
+  def todo_complete(todo, user_server), do: TodoServer.mark_complete(todo, user_server)
 
-  def delete_todo(%Todo{} = todo, user_pid) do
-    TodoServer.delete_todo(user_pid, todo)
+  def delete(todo_params, user_server) do
+    Todo
+      |> to_struct(todo_params)
+      |> TodoServer.delete_todo(user_server)
   end
 
   defp to_struct(kind, attrs) do
